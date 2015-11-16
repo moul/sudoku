@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/Sirupsen/logrus"
 )
 
 type Availables struct {
@@ -12,6 +14,7 @@ type Availables struct {
 }
 
 type Sudoku struct {
+	Debug      bool
 	Size       int
 	SquareSize int
 	Grid       [][]int
@@ -48,6 +51,7 @@ func NewAvailables(size int) Availables {
 func NewSudokuWithSize(sqsize int) Sudoku {
 	size := sqsize * sqsize
 	sudoku := Sudoku{
+		Debug:      false,
 		SquareSize: sqsize,
 		Size:       size,
 		Grid:       make([][]int, size),
@@ -282,12 +286,23 @@ func (s *Sudoku) RemoveNumbersThatCanOnlyBeInFewPositions() int {
 }
 
 func (s *Sudoku) Resolve() error {
+	changes := 0
+	iteration := 0
+
 start:
-	if s.ResolveOnlyOne() > 0 {
+	if s.Debug {
+		logrus.Infof("#######  iteration=%-3d changes=%-2d  #######\n%s\n%s", iteration, changes, s.String(), s.AvailablesString())
+		logrus.Infof(strings.Repeat("#", 42))
+	}
+	iteration++
+
+	if changes = s.ResolveOnlyOne(); changes > 0 {
 		goto start
 	}
-	if s.RemoveNumbersThatCanOnlyBeInFewPositions() > 0 {
+
+	if changes = s.RemoveNumbersThatCanOnlyBeInFewPositions(); changes > 0 {
 		goto start
 	}
+
 	return nil
 }

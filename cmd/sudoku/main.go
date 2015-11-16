@@ -34,6 +34,7 @@ func main() {
 	sudokus := strings.Split(input, "+\n+")
 	for _, sudokuStr := range sudokus {
 		sudo := sudoku.NewSudoku()
+		sudo.Debug = os.Getenv("DEBUG") == "1"
 		sudokuStr = fmt.Sprintf("+%s+", sudokuStr)
 
 		if err := sudo.ParseString(sudokuStr); err != nil {
@@ -45,9 +46,8 @@ func main() {
 		}
 
 		fmt.Println(sudo.String())
-		if sudo.Missings() > 0 {
-			fmt.Println(sudo.AvailablesString())
-			fmt.Printf("Missings: %d\n", sudo.Missings())
+		if sudo.Debug && sudo.Missings() > 0 {
+			logrus.Warnf("Missings: %d\n%s", sudo.Missings(), sudo.AvailablesString())
 		}
 	}
 }
