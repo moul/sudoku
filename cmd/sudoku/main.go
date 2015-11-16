@@ -16,11 +16,22 @@ func main() {
 	if len(os.Args) < 2 {
 		logrus.Fatalf("Usage: sudoku /path/to/map-file.txt")
 	}
-	buf, err := ioutil.ReadFile(os.Args[1])
-	if err != nil {
-		logrus.Fatalf("Failed to read file %q: %v", os.Args[1], err)
+
+	filepath := os.Args[1]
+	var input string
+	if filepath == "-" {
+		bytes, err := ioutil.ReadAll(os.Stdin)
+		if err != nil {
+			logrus.Fatalf("Failed to read from stdin: %v", err)
+		}
+		input = string(bytes)
+	} else {
+		buf, err := ioutil.ReadFile(filepath)
+		if err != nil {
+			logrus.Fatalf("Failed to read file %q: %v", filepath, err)
+		}
+		input = strings.TrimSpace(string(buf))
 	}
-	input := strings.TrimSpace(string(buf))
 	input = input[1 : len(input)-1]
 	sudokus := strings.Split(input, "+\n+")
 	for _, sudokuStr := range sudokus {
