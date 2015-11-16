@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/Sirupsen/logrus"
@@ -10,30 +12,32 @@ import (
 
 func main() {
 	sudo := sudoku.NewSudoku()
-	input := `+-----------------+
-|  3 5 6       7 8|
-|8     9     6    |
-|      4 7 8      |
-|  5 4 3         1|
-|1 6           5 7|
-|3         1 2 9  |
-|      8 4 5      |
-|    3     6     9|
-|  4       9 5 8  |
-+-----------------+`
-	if err := sudo.ParseString(input); err != nil {
-		logrus.Fatalf("Failed to parse sudoku: %v", err)
-	}
-	fmt.Println(sudo.String())
-	fmt.Println(sudo.AvailablesString())
-	fmt.Printf("Missings: %d\n", sudo.Missings())
 
-	fmt.Println(strings.Repeat("-", 40))
-
-	if err := sudo.Resolve(); err != nil {
-		logrus.Fatalf("Failed to resolve sudoku: %v", err)
+	if len(os.Args) < 2 {
+		logrus.Fatalf("Usage: sudoku /path/to/map-file.txt")
 	}
-	fmt.Println(sudo.String())
-	fmt.Println(sudo.AvailablesString())
-	fmt.Printf("Missings: %d\n", sudo.Missings())
+	buf, err := ioutil.ReadFile(os.Args[1])
+	if err != nil {
+		logrus.Fatalf("Failed to read file %q: %v", os.Args[1], err)
+	}
+	input := strings.TrimSpace(string(buf))
+	input = input[1 : len(input)-1]
+	sudokus := strings.Split(input, "+\n+")
+	for _, sudokuStr := range sudokus {
+		sudokuStr = fmt.Sprintf("+%s+", sudokuStr)
+
+		if err := sudo.ParseString(sudokuStr); err != nil {
+			logrus.Fatalf("Failed to parse sudoku: %v", err)
+		}
+
+		if err := sudo.Resolve(); err != nil {
+			logrus.Fatalf("Failed to resolve sudoku: %v", err)
+		}
+
+		fmt.Println(sudo.String())
+		if sudo.Missings() > 0 {
+			fmt.Println(sudo.AvailablesString())
+			fmt.Printf("Missings: %d\n", sudo.Missings())
+		}
+	}
 }
