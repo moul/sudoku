@@ -60,3 +60,7 @@ func (s *Sudoku) String() string {
 	lines = append(lines, fmt.Sprintf("+%s+", strings.Repeat("-", s.Size*2-1)))
 	return strings.Join(lines, "\n")
 }
+
+func (s *Sudoku) Resolv() error {
+	return nil
+}

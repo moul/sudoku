@@ -23,6 +23,10 @@ func main() {
 	if err := sudoku.ParseString(input); err != nil {
 		logrus.Fatalf("Failed to parse sudoku: %v", err)
 	}
+	fmt.Println(sudoku.String())
 
+	if err := sudoku.Resolv(); err != nil {
+		logrus.Fatalf("Failed to resolve sudoku: %v", err)
+	}
 	fmt.Println(sudoku.String())
 }
