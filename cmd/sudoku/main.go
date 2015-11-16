@@ -11,8 +11,6 @@ import (
 )
 
 func main() {
-	sudo := sudoku.NewSudoku()
-
 	if len(os.Args) < 2 {
 		logrus.Fatalf("Usage: sudoku /path/to/map-file.txt")
 	}
@@ -35,6 +33,7 @@ func main() {
 	input = input[1 : len(input)-1]
 	sudokus := strings.Split(input, "+\n+")
 	for _, sudokuStr := range sudokus {
+		sudo := sudoku.NewSudoku()
 		sudokuStr = fmt.Sprintf("+%s+", sudokuStr)
 
 		if err := sudo.ParseString(sudokuStr); err != nil {
