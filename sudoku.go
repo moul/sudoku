@@ -240,7 +240,7 @@ func (s *Sudoku) ResolveOnlyOne() int {
 	return changed
 }
 
-func (s *Sudoku) Resolv() error {
+func (s *Sudoku) Resolve() error {
 start:
 	if s.ResolveOnlyOne() > 0 {
 		goto start

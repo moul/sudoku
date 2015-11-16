@@ -30,7 +30,7 @@ func main() {
 
 	fmt.Println(strings.Repeat("-", 40))
 
-	if err := sudo.Resolv(); err != nil {
+	if err := sudo.Resolve(); err != nil {
 		logrus.Fatalf("Failed to resolve sudoku: %v", err)
 	}
 	fmt.Println(sudo.String())
