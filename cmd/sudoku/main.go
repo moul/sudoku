@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/moul/sudoku"
 )
 
 func main() {
-	sudoku := sudoku.NewSudoku()
+	sudo := sudoku.NewSudoku()
 	input := `+-----------------+
 |  3 5 6       7 8|
 |8     9     6    |
@@ -20,13 +21,19 @@ func main() {
 |    3     6     9|
 |  4       9 5 8  |
 +-----------------+`
-	if err := sudoku.ParseString(input); err != nil {
+	if err := sudo.ParseString(input); err != nil {
 		logrus.Fatalf("Failed to parse sudoku: %v", err)
 	}
-	fmt.Println(sudoku.String())
+	fmt.Println(sudo.String())
+	fmt.Println(sudo.AvailablesString())
+	fmt.Printf("Missings: %d\n", sudo.Missings())
 
-	if err := sudoku.Resolv(); err != nil {
+	fmt.Println(strings.Repeat("-", 40))
+
+	if err := sudo.Resolv(); err != nil {
 		logrus.Fatalf("Failed to resolve sudoku: %v", err)
 	}
-	fmt.Println(sudoku.String())
+	fmt.Println(sudo.String())
+	fmt.Println(sudo.AvailablesString())
+	fmt.Printf("Missings: %d\n", sudo.Missings())
 }
