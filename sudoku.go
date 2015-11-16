@@ -115,6 +115,26 @@ func (a *Availables) SetNumber(number int) {
 	}
 }
 
+func (a *Availables) Length() int {
+	length := 0
+	for i := 1; i <= a.Size; i++ {
+		if a.Numbers[i] {
+			length++
+		}
+	}
+	return length
+}
+
+func (a *Availables) Availables() []int {
+	availables := []int{}
+	for i := 1; i <= a.Size; i++ {
+		if a.Numbers[i] {
+			availables = append(availables, i)
+		}
+	}
+	return availables
+}
+
 func (a *Availables) RemoveNumber(number int) {
 	a.Numbers[number] = false
 }
@@ -204,6 +224,26 @@ func (s *Sudoku) Missings() int {
 	return missings
 }
 
+func (s *Sudoku) ResolveOnlyOne() int {
+	changed := 0
+	for y := 0; y < s.Size; y++ {
+		for x := 0; x < s.Size; x++ {
+			if s.Grid[y][x] != 0 {
+				continue
+			}
+			if s.Availables[y][x].Length() == 1 {
+				s.SetNumber(y, x, s.Availables[y][x].Availables()[0])
+				changed++
+			}
+		}
+	}
+	return changed
+}
+
 func (s *Sudoku) Resolv() error {
+start:
+	if s.ResolveOnlyOne() > 0 {
+		goto start
+	}
 	return nil
 }
