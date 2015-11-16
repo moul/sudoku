@@ -135,8 +135,13 @@ func (a *Availables) Availables() []int {
 	return availables
 }
 
-func (a *Availables) RemoveNumber(number int) {
+func (a *Availables) RemoveNumber(number int) bool {
+	changed := false
+	if a.Numbers[number] {
+		changed = true
+	}
 	a.Numbers[number] = false
+	return changed
 }
 
 func (g *Groups) MatchCoords(y, x int) []Group {
@@ -240,9 +245,48 @@ func (s *Sudoku) ResolveOnlyOne() int {
 	return changed
 }
 
+func (s *Sudoku) RemoveNumbersThatCanOnlyBeInFewPositions() int {
+	changes := 0
+	for _, group := range s.Groups {
+		for idxA, posA := range group.Positions {
+			identicalSlots := 0
+			availableA := s.Availables[posA.Y][posA.X]
+			for idxB, posB := range group.Positions {
+				if idxA == idxB {
+					continue
+				}
+				availableB := s.Availables[posB.Y][posB.X]
+				if availableA.String() == availableB.String() {
+					identicalSlots++
+				}
+			}
+			if identicalSlots != 1 {
+				continue
+			}
+			for idxB, posB := range group.Positions {
+				if idxA == idxB {
+					continue
+				}
+				availableB := s.Availables[posB.Y][posB.X]
+				if availableA.String() != availableB.String() {
+					for _, number := range availableA.Availables() {
+						if availableB.RemoveNumber(number) {
+							changes++
+						}
+					}
+				}
+			}
+		}
+	}
+	return changes
+}
+
 func (s *Sudoku) Resolve() error {
 start:
 	if s.ResolveOnlyOne() > 0 {
+		goto start
+	}
+	if s.RemoveNumbersThatCanOnlyBeInFewPositions() > 0 {
 		goto start
 	}
 	return nil
