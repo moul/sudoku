@@ -101,7 +101,7 @@ func ExampleSudoku_Resolve_hardest1() {
 /*
 func ExampleSudoku_Resolve_hardest2() {
 	sudoku := NewSudoku()
-	sudoku.BruteLimit = 2
+	sudoku.BruteLimit = 3
 	sudoku.ParseString(`
 +-----------------+
 |8                |

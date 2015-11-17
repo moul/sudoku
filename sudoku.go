@@ -91,6 +91,38 @@ func NewSudokuWithSize(sqsize int) Sudoku {
 	return sudoku
 }
 
+func (s *Sudoku) PositionsWithAvailableSize(size int) []Position {
+	positions := []Position{}
+	for y := 0; y < s.Size; y++ {
+		for x := 0; x < s.Size; x++ {
+			if s.Availables[y][x].Length() == size {
+				positions = append(positions, Position{Y: y, X: x})
+			}
+		}
+	}
+	return positions
+}
+
+func (s *Sudoku) PositionsBySizes() map[int][]Position {
+	positionsBySizes := make(map[int][]Position, 0)
+
+	for size := 0; size <= s.Size; size++ {
+		positionsBySizes[size] = make([]Position, 0)
+	}
+
+	for y := 0; y < s.Size; y++ {
+		for x := 0; x < s.Size; x++ {
+			size := s.Availables[y][x].Length()
+			if size < 2 {
+				continue
+			}
+			positionsBySizes[size] = append(positionsBySizes[size], Position{Y: y, X: x})
+		}
+	}
+
+	return positionsBySizes
+}
+
 func (s *Sudoku) initGroups() {
 	// horizontal groups
 	for y := 0; y < s.Size; y++ {
@@ -387,19 +419,18 @@ start:
 		return s, fmt.Errorf("Too deep")
 	}
 
-	for y := 0; y < s.Size; y++ {
-		for x := 0; x < s.Size; x++ {
-			if s.Availables[y][x].Length() > 0 {
-				clone := Sudoku{}
-				s.Clone(&clone)
-				clone.SetNumber(y, x, s.Availables[y][x].Availables()[0])
-				newSudoku, err := clone.ResolveRec(depth + 1)
-				if err != nil {
-					continue
-				}
-				if newSudoku.Missings() == 0 {
-					return newSudoku, nil
-				}
+	clone := Sudoku{}
+	positionsBySizes := s.PositionsBySizes()
+	for size := 2; size < s.Size-1; size++ {
+		for _, pos := range positionsBySizes[size] {
+			s.Clone(&clone)
+			clone.SetNumber(pos.Y, pos.X, s.Availables[pos.Y][pos.X].Availables()[0])
+			newSudoku, err := clone.ResolveRec(depth + 1)
+			if err != nil {
+				continue
+			}
+			if newSudoku.Missings() == 0 {
+				return newSudoku, nil
 			}
 		}
 	}
