@@ -255,9 +255,6 @@ func (s *Sudoku) RemoveNumbersThatCanOnlyBeInFewPositions() int {
 		for idxA, posA := range group.Positions {
 			identicalSlots := 0
 			availableA := s.Availables[posA.Y][posA.X]
-			if len(availableA.Availables()) != 2 {
-				continue
-			}
 			for idxB, posB := range group.Positions {
 				if idxA == idxB {
 					continue
@@ -267,7 +264,7 @@ func (s *Sudoku) RemoveNumbersThatCanOnlyBeInFewPositions() int {
 					identicalSlots++
 				}
 			}
-			if identicalSlots != 1 {
+			if identicalSlots != availableA.Length()-1 {
 				continue
 			}
 			for idxB, posB := range group.Positions {
