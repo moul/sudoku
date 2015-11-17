@@ -2,6 +2,7 @@ package sudoku
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 
@@ -11,6 +12,7 @@ import (
 type Availables struct {
 	Size    int
 	Numbers map[int]bool
+	Length  int
 }
 
 type Sudoku struct {
@@ -81,7 +83,7 @@ func (s *Sudoku) initFields() {
 func NewSudokuWithSize(sqsize int) Sudoku {
 	size := sqsize * sqsize
 	sudoku := Sudoku{
-		Debug:      false,
+		Debug:      os.Getenv("DEBUG") == "1",
 		SquareSize: sqsize,
 		Size:       size,
 		BruteLimit: 2,
@@ -129,6 +131,7 @@ func NewAvailables(size int) Availables {
 	availables := Availables{
 		Size:    size,
 		Numbers: make(map[int]bool, size),
+		Length:  size,
 	}
 	for i := 1; i <= size; i++ {
 		availables.Numbers[i] = true
@@ -152,16 +155,7 @@ func (a *Availables) SetNumber(number int) {
 	for i := 1; i <= a.Size; i++ {
 		a.Numbers[i] = i == number
 	}
-}
-
-func (a *Availables) Length() int {
-	length := 0
-	for i := 1; i <= a.Size; i++ {
-		if a.Numbers[i] {
-			length++
-		}
-	}
-	return length
+	a.Length = 1
 }
 
 func (a *Availables) Availables() []int {
@@ -175,12 +169,12 @@ func (a *Availables) Availables() []int {
 }
 
 func (a *Availables) RemoveNumber(number int) bool {
-	changed := false
 	if a.Numbers[number] {
-		changed = true
+		a.Length--
+		a.Numbers[number] = false
+		return true
 	}
-	a.Numbers[number] = false
-	return changed
+	return false
 }
 
 func (g *Groups) AllGroups() []Group {
@@ -283,7 +277,7 @@ func (s *Sudoku) ResolveOnlyOne() int {
 			if s.Grid[y][x] != 0 {
 				continue
 			}
-			if s.Availables[y][x].Length() == 1 {
+			if s.Availables[y][x].Length == 1 {
 				s.SetNumber(y, x, s.Availables[y][x].Availables()[0])
 				changed++
 			}
@@ -307,7 +301,7 @@ func (s *Sudoku) RemoveNumbersThatCanOnlyBeInFewPositions() int {
 					identicalSlots++
 				}
 			}
-			if identicalSlots != availableA.Length()-1 {
+			if identicalSlots != availableA.Length-1 {
 				continue
 			}
 			for idxB, posB := range group.Positions {
@@ -317,7 +311,7 @@ func (s *Sudoku) RemoveNumbersThatCanOnlyBeInFewPositions() int {
 				availableB := s.Availables[posB.Y][posB.X]
 				if availableA.String() != availableB.String() {
 					for _, number := range availableA.Availables() {
-						if availableB.RemoveNumber(number) {
+						if s.Availables[posB.Y][posB.X].RemoveNumber(number) {
 							changes++
 						}
 					}
@@ -389,7 +383,7 @@ start:
 
 	for y := 0; y < s.Size; y++ {
 		for x := 0; x < s.Size; x++ {
-			if s.Availables[y][x].Length() > 0 {
+			if s.Availables[y][x].Length > 0 {
 				clone := Sudoku{}
 				s.Clone(&clone)
 				clone.SetNumber(y, x, s.Availables[y][x].Availables()[0])
