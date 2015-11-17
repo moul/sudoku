@@ -23,6 +23,10 @@ type Sudoku struct {
 	Availables [][]Availables
 	Groups     Groups
 	BruteLimit int
+
+	DoResolveNumbersThatAreOnlyInOnePosition    bool
+	DoResolveNumbersThatCanOnlyBeInFewPositions bool
+	DoResolveOnlyOne                            bool
 }
 
 type GroupType int
@@ -54,6 +58,10 @@ func (s *Sudoku) Clone(dest *Sudoku) {
 	dest.Size = s.Size
 	dest.SquareSize = s.SquareSize
 	dest.BruteLimit = s.BruteLimit
+
+	dest.DoResolveNumbersThatAreOnlyInOnePosition = s.DoResolveNumbersThatAreOnlyInOnePosition
+	dest.DoResolveNumbersThatCanOnlyBeInFewPositions = s.DoResolveNumbersThatCanOnlyBeInFewPositions
+	dest.DoResolveOnlyOne = s.DoResolveOnlyOne
 
 	dest.initFields()
 	dest.Groups = s.Groups
@@ -87,6 +95,10 @@ func NewSudokuWithSize(sqsize int) Sudoku {
 		SquareSize: sqsize,
 		Size:       size,
 		BruteLimit: 2,
+
+		DoResolveNumbersThatAreOnlyInOnePosition:    true,
+		DoResolveNumbersThatCanOnlyBeInFewPositions: true,
+		DoResolveOnlyOne:                            true,
 	}
 	sudoku.initFields()
 	sudoku.initGroups()
@@ -357,19 +369,25 @@ start:
 	}
 	iteration++
 
-	kind = "resolve-only-one"
-	if changes = s.ResolveOnlyOne(); changes > 0 {
-		goto start
+	if s.DoResolveOnlyOne {
+		kind = "resolve-only-one"
+		if changes = s.ResolveOnlyOne(); changes > 0 {
+			goto start
+		}
 	}
 
-	kind = "resolve-numbers-that-are-only-in-one-position"
-	if changes = s.ResolveNumbersThatAreOnlyInOnePosition(); changes > 0 {
-		goto start
+	if s.DoResolveNumbersThatAreOnlyInOnePosition {
+		kind = "resolve-numbers-that-are-only-in-one-position"
+		if changes = s.ResolveNumbersThatAreOnlyInOnePosition(); changes > 0 {
+			goto start
+		}
 	}
 
-	kind = "resolve-numbers-that-can-only-be-in-few-positions"
-	if changes = s.RemoveNumbersThatCanOnlyBeInFewPositions(); changes > 0 {
-		goto start
+	if s.DoResolveNumbersThatCanOnlyBeInFewPositions && depth == 0 {
+		kind = "resolve-numbers-that-can-only-be-in-few-positions"
+		if changes = s.RemoveNumbersThatCanOnlyBeInFewPositions(); changes > 0 {
+			goto start
+		}
 	}
 
 	// Brute force
