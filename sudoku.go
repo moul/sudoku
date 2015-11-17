@@ -21,7 +21,16 @@ type Sudoku struct {
 	Availables [][]Availables
 	Groups     Groups
 }
-type Groups []Group
+
+type GroupType int
+
+const (
+	HorizontalGroup GroupType = iota
+	VerticalGroup
+	RegionGroup
+)
+
+type Groups map[GroupType][]Group
 
 type Position struct {
 	Y int
@@ -56,7 +65,7 @@ func NewSudokuWithSize(sqsize int) Sudoku {
 		Size:       size,
 		Grid:       make([][]int, size),
 		Availables: make([][]Availables, size),
-		Groups:     make([]Group, 0),
+		Groups:     make(map[GroupType][]Group, 0),
 	}
 	for i := 0; i < size; i++ {
 		sudoku.Grid[i] = make([]int, size)
@@ -72,7 +81,7 @@ func NewSudokuWithSize(sqsize int) Sudoku {
 		for x := 0; x < size; x++ {
 			group.Positions = append(group.Positions, Position{y, x})
 		}
-		sudoku.Groups = append(sudoku.Groups, group)
+		sudoku.Groups[HorizontalGroup] = append(sudoku.Groups[HorizontalGroup], group)
 	}
 
 	// vertical groups
@@ -81,7 +90,7 @@ func NewSudokuWithSize(sqsize int) Sudoku {
 		for y := 0; y < size; y++ {
 			group.Positions = append(group.Positions, Position{y, x})
 		}
-		sudoku.Groups = append(sudoku.Groups, group)
+		sudoku.Groups[VerticalGroup] = append(sudoku.Groups[VerticalGroup], group)
 	}
 	// zone groups
 	for a := 0; a < sudoku.SquareSize; a++ {
@@ -94,7 +103,7 @@ func NewSudokuWithSize(sqsize int) Sudoku {
 					group.Positions = append(group.Positions, Position{y, x})
 				}
 			}
-			sudoku.Groups = append(sudoku.Groups, group)
+			sudoku.Groups[RegionGroup] = append(sudoku.Groups[RegionGroup], group)
 		}
 	}
 
@@ -148,9 +157,17 @@ func (a *Availables) RemoveNumber(number int) bool {
 	return changed
 }
 
+func (g *Groups) AllGroups() []Group {
+	groups := []Group{}
+	for _, typeGroups := range *g {
+		groups = append(groups, typeGroups...)
+	}
+	return groups
+}
+
 func (g *Groups) MatchCoords(y, x int) []Group {
 	groups := []Group{}
-	for _, group := range *g {
+	for _, group := range g.AllGroups() {
 		for _, pos := range group.Positions {
 			if pos.Y == y && pos.X == x {
 				groups = append(groups, group)
@@ -251,7 +268,7 @@ func (s *Sudoku) ResolveOnlyOne() int {
 
 func (s *Sudoku) RemoveNumbersThatCanOnlyBeInFewPositions() int {
 	changes := 0
-	for _, group := range s.Groups {
+	for _, group := range s.Groups.AllGroups() {
 		for idxA, posA := range group.Positions {
 			identicalSlots := 0
 			availableA := s.Availables[posA.Y][posA.X]
@@ -287,7 +304,7 @@ func (s *Sudoku) RemoveNumbersThatCanOnlyBeInFewPositions() int {
 
 func (s *Sudoku) ResolveNumbersThatAreOnlyInOnePosition() int {
 	changes := 0
-	for _, group := range s.Groups {
+	for _, group := range s.Groups.AllGroups() {
 		for number := 1; number <= s.Size; number++ {
 			count := 0
 			for _, pos := range group.Positions {
