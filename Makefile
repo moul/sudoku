@@ -10,3 +10,9 @@ build: $(TARGET)
 
 $(TARGET): $(SOURCES)
 	go build -o $@ ./cmd/$@
+
+
+.PHONY: test
+test:
+	go get -t ./...
+	go test -v .
