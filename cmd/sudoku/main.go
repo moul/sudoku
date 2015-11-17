@@ -32,7 +32,7 @@ func main() {
 	}
 	input = input[1 : len(input)-1]
 	sudokus := strings.Split(input, "+\n+")
-	for _, sudokuStr := range sudokus {
+	for idx, sudokuStr := range sudokus {
 		sudo := sudoku.NewSudoku()
 		sudo.Debug = os.Getenv("DEBUG") == "1"
 		sudokuStr = fmt.Sprintf("+%s+", sudokuStr)
@@ -45,7 +45,11 @@ func main() {
 			logrus.Fatalf("Failed to resolve sudoku: %v", err)
 		}
 
+		if idx > 0 {
+			fmt.Println("####################")
+		}
 		fmt.Println(sudo.String())
+
 		if sudo.Debug && sudo.Missings() > 0 {
 			logrus.Warnf("Missings: %d\n%s", sudo.Missings(), sudo.AvailablesString())
 		}

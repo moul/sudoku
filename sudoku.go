@@ -285,6 +285,29 @@ func (s *Sudoku) RemoveNumbersThatCanOnlyBeInFewPositions() int {
 	return changes
 }
 
+func (s *Sudoku) ResolveNumbersThatAreOnlyInOnePosition() int {
+	changes := 0
+	for _, group := range s.Groups {
+		for number := 1; number <= s.Size; number++ {
+			count := 0
+			for _, pos := range group.Positions {
+				if s.Availables[pos.Y][pos.X].Numbers[number] {
+					count++
+				}
+			}
+			if count == 1 {
+				for _, pos := range group.Positions {
+					if s.Availables[pos.Y][pos.X].Numbers[number] {
+						s.SetNumber(pos.Y, pos.X, number)
+						changes++
+					}
+				}
+			}
+		}
+	}
+	return changes
+}
+
 func (s *Sudoku) Resolve() error {
 	changes := 0
 	iteration := 0
@@ -299,6 +322,11 @@ start:
 
 	kind = "resolve-only-one"
 	if changes = s.ResolveOnlyOne(); changes > 0 {
+		goto start
+	}
+
+	kind = "resolve-numbers-that-are-only-in-one-position"
+	if changes = s.ResolveNumbersThatAreOnlyInOnePosition(); changes > 0 {
 		goto start
 	}
 
