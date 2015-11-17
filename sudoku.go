@@ -255,6 +255,9 @@ func (s *Sudoku) RemoveNumbersThatCanOnlyBeInFewPositions() int {
 		for idxA, posA := range group.Positions {
 			identicalSlots := 0
 			availableA := s.Availables[posA.Y][posA.X]
+			if len(availableA.Availables()) != 2 {
+				continue
+			}
 			for idxB, posB := range group.Positions {
 				if idxA == idxB {
 					continue
@@ -288,18 +291,21 @@ func (s *Sudoku) RemoveNumbersThatCanOnlyBeInFewPositions() int {
 func (s *Sudoku) Resolve() error {
 	changes := 0
 	iteration := 0
+	kind := "start"
 
 start:
 	if s.Debug {
-		logrus.Infof("#######  iteration=%-3d changes=%-2d  #######\n%s\n%s", iteration, changes, s.String(), s.AvailablesString())
+		logrus.Infof("#######  iteration=%-3d changes=%-2d kind=%s\n%s\n%s", iteration, changes, kind, s.String(), s.AvailablesString())
 		logrus.Infof(strings.Repeat("#", 42))
 	}
 	iteration++
 
+	kind = "resolve-only-one"
 	if changes = s.ResolveOnlyOne(); changes > 0 {
 		goto start
 	}
 
+	kind = "resolve-numbers-that-can-only-be-in-few-positions"
 	if changes = s.RemoveNumbersThatCanOnlyBeInFewPositions(); changes > 0 {
 		goto start
 	}
