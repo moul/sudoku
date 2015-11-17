@@ -9,6 +9,7 @@ build: $(TARGET)
 
 
 $(TARGET): $(SOURCES)
+	go get ./...
 	go build -o $@ ./cmd/$@
 
 
