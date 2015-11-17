@@ -20,6 +20,7 @@ type Sudoku struct {
 	Grid       [][]int
 	Availables [][]Availables
 	Groups     Groups
+	BruteLimit int
 }
 
 type GroupType int
@@ -46,6 +47,84 @@ func NewSudoku() Sudoku {
 	return NewSudokuWithSize(3)
 }
 
+func (s *Sudoku) Clone(dest *Sudoku) {
+	dest.Debug = s.Debug
+	dest.Size = s.Size
+	dest.SquareSize = s.SquareSize
+	dest.BruteLimit = s.BruteLimit
+
+	dest.initFields()
+	dest.Groups = s.Groups
+
+	for y := 0; y < s.Size; y++ {
+		for x := 0; x < s.Size; x++ {
+			if s.Grid[y][x] > 0 {
+				dest.SetNumber(y, x, s.Grid[y][x])
+			}
+		}
+	}
+}
+
+func (s *Sudoku) initFields() {
+	s.Grid = make([][]int, s.Size)
+	s.Availables = make([][]Availables, s.Size)
+	s.Groups = make(map[GroupType][]Group, 0)
+	for i := 0; i < s.Size; i++ {
+		s.Grid[i] = make([]int, s.Size)
+		s.Availables[i] = make([]Availables, s.Size)
+		for j := 0; j < s.Size; j++ {
+			s.Availables[i][j] = NewAvailables(s.Size)
+		}
+	}
+}
+
+func NewSudokuWithSize(sqsize int) Sudoku {
+	size := sqsize * sqsize
+	sudoku := Sudoku{
+		Debug:      false,
+		SquareSize: sqsize,
+		Size:       size,
+		BruteLimit: 2,
+	}
+	sudoku.initFields()
+	sudoku.initGroups()
+	return sudoku
+}
+
+func (s *Sudoku) initGroups() {
+	// horizontal groups
+	for y := 0; y < s.Size; y++ {
+		group := Group{}
+		for x := 0; x < s.Size; x++ {
+			group.Positions = append(group.Positions, Position{y, x})
+		}
+		s.Groups[HorizontalGroup] = append(s.Groups[HorizontalGroup], group)
+	}
+
+	// vertical groups
+	for x := 0; x < s.Size; x++ {
+		group := Group{}
+		for y := 0; y < s.Size; y++ {
+			group.Positions = append(group.Positions, Position{y, x})
+		}
+		s.Groups[VerticalGroup] = append(s.Groups[VerticalGroup], group)
+	}
+	// zone groups
+	for a := 0; a < s.SquareSize; a++ {
+		for b := 0; b < s.SquareSize; b++ {
+			group := Group{}
+			for c := 0; c < s.SquareSize; c++ {
+				for d := 0; d < s.SquareSize; d++ {
+					y := a*s.SquareSize + c
+					x := b*s.SquareSize + d
+					group.Positions = append(group.Positions, Position{y, x})
+				}
+			}
+			s.Groups[RegionGroup] = append(s.Groups[RegionGroup], group)
+		}
+	}
+}
+
 func NewAvailables(size int) Availables {
 	availables := Availables{
 		Size:    size,
@@ -55,59 +134,6 @@ func NewAvailables(size int) Availables {
 		availables.Numbers[i] = true
 	}
 	return availables
-}
-
-func NewSudokuWithSize(sqsize int) Sudoku {
-	size := sqsize * sqsize
-	sudoku := Sudoku{
-		Debug:      false,
-		SquareSize: sqsize,
-		Size:       size,
-		Grid:       make([][]int, size),
-		Availables: make([][]Availables, size),
-		Groups:     make(map[GroupType][]Group, 0),
-	}
-	for i := 0; i < size; i++ {
-		sudoku.Grid[i] = make([]int, size)
-		sudoku.Availables[i] = make([]Availables, size)
-		for j := 0; j < size; j++ {
-			sudoku.Availables[i][j] = NewAvailables(size)
-		}
-	}
-
-	// horizontal groups
-	for y := 0; y < size; y++ {
-		group := Group{}
-		for x := 0; x < size; x++ {
-			group.Positions = append(group.Positions, Position{y, x})
-		}
-		sudoku.Groups[HorizontalGroup] = append(sudoku.Groups[HorizontalGroup], group)
-	}
-
-	// vertical groups
-	for x := 0; x < size; x++ {
-		group := Group{}
-		for y := 0; y < size; y++ {
-			group.Positions = append(group.Positions, Position{y, x})
-		}
-		sudoku.Groups[VerticalGroup] = append(sudoku.Groups[VerticalGroup], group)
-	}
-	// zone groups
-	for a := 0; a < sudoku.SquareSize; a++ {
-		for b := 0; b < sudoku.SquareSize; b++ {
-			group := Group{}
-			for c := 0; c < sudoku.SquareSize; c++ {
-				for d := 0; d < sudoku.SquareSize; d++ {
-					y := a*sudoku.SquareSize + c
-					x := b*sudoku.SquareSize + d
-					group.Positions = append(group.Positions, Position{y, x})
-				}
-			}
-			sudoku.Groups[RegionGroup] = append(sudoku.Groups[RegionGroup], group)
-		}
-	}
-
-	return sudoku
 }
 
 func (a *Availables) String() string {
@@ -325,14 +351,14 @@ func (s *Sudoku) ResolveNumbersThatAreOnlyInOnePosition() int {
 	return changes
 }
 
-func (s *Sudoku) Resolve() error {
+func (s *Sudoku) ResolveRec(depth int) (*Sudoku, error) {
 	changes := 0
 	iteration := 0
 	kind := "start"
 
 start:
 	if s.Debug {
-		logrus.Infof("#######  iteration=%-3d changes=%-2d kind=%s\n%s\n%s", iteration, changes, kind, s.String(), s.AvailablesString())
+		logrus.Infof("#######  depth=%-2d iteration=%-3d changes=%-2d missings=%d kind=%s\n%s\n%s", depth, iteration, changes, s.Missings(), kind, s.String(), s.AvailablesString())
 		logrus.Infof(strings.Repeat("#", 42))
 	}
 	iteration++
@@ -352,5 +378,43 @@ start:
 		goto start
 	}
 
+	// Brute force
+	if s.Missings() == 0 {
+		return s, nil
+	}
+
+	if depth >= s.BruteLimit {
+		return s, fmt.Errorf("Too deep")
+	}
+
+	for y := 0; y < s.Size; y++ {
+		for x := 0; x < s.Size; x++ {
+			if s.Availables[y][x].Length() > 0 {
+				clone := Sudoku{}
+				s.Clone(&clone)
+				clone.SetNumber(y, x, s.Availables[y][x].Availables()[0])
+				newSudoku, err := clone.ResolveRec(depth + 1)
+				if err != nil {
+					continue
+				}
+				if newSudoku.Missings() == 0 {
+					return newSudoku, nil
+				}
+			}
+		}
+	}
+
+	return s, nil
+}
+
+func (s *Sudoku) Resolve() error {
+	newSudoku, err := s.ResolveRec(0)
+	if err != nil {
+		return err
+	}
+
+	if newSudoku != s {
+		newSudoku.Clone(s)
+	}
 	return nil
 }
