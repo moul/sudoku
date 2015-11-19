@@ -343,6 +343,12 @@ start:
 	}
 }
 
+type Clone struct {
+	Sudoku      *Sudoku
+	BrutePos    Position
+	BruteNumber int
+}
+
 func (s *Sudoku) ResolveRec(depth int) (*Sudoku, error) {
 	s.ResolveNonBrute(depth)
 	if s.Missings == 0 {
@@ -353,6 +359,7 @@ func (s *Sudoku) ResolveRec(depth int) (*Sudoku, error) {
 		return s, fmt.Errorf("Too deep")
 	}
 
+	var clones []Clone
 	for y := 0; y < s.Size; y++ {
 		for x := 0; x < s.Size; x++ {
 			if s.Availables[y][x].Length == 0 {
@@ -362,17 +369,24 @@ func (s *Sudoku) ResolveRec(depth int) (*Sudoku, error) {
 				if !s.Availables[y][x].Numbers[i] {
 					continue
 				}
-				clone := Sudoku{}
-				s.Clone(&clone)
-				clone.SetNumber(y, x, i)
-				newSudoku, err := clone.ResolveRec(depth + 1)
-				if err != nil {
-					continue
-				}
-				if newSudoku.Missings == 0 {
-					return newSudoku, nil
-				}
+				clones = append(clones, Clone{
+					Sudoku:      &Sudoku{},
+					BrutePos:    Position{Y: y, X: x},
+					BruteNumber: i,
+				})
 			}
+		}
+	}
+
+	for _, clone := range clones {
+		s.Clone(clone.Sudoku)
+		clone.Sudoku.SetNumber(clone.BrutePos.Y, clone.BrutePos.X, clone.BruteNumber)
+		newSudoku, err := clone.Sudoku.ResolveRec(depth + 1)
+		if err != nil {
+			continue
+		}
+		if newSudoku.Missings == 0 {
+			return newSudoku, nil
 		}
 	}
 
