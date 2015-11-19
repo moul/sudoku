@@ -383,6 +383,7 @@ func (s *Sudoku) ResolveRec(depth int) (*Sudoku, error) {
 		clone.Sudoku.SetNumber(clone.BrutePos.Y, clone.BrutePos.X, clone.BruteNumber)
 		newSudoku, err := clone.Sudoku.ResolveRec(depth + 1)
 		if err != nil {
+			s.Availables[clone.BrutePos.Y][clone.BrutePos.X].RemoveNumber(clone.BruteNumber)
 			continue
 		}
 		if newSudoku.Missings == 0 {
