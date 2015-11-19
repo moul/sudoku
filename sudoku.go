@@ -357,12 +357,15 @@ func (s *Sudoku) ResolveNumbersThatAreOnlyInOnePosition() int {
 	return changes
 }
 
-func (s *Sudoku) ResolveRec(depth int) (*Sudoku, error) {
+func (s *Sudoku) ResolveNonBrute(depth int) {
 	changes := 0
 	iteration := 0
 	kind := "start"
 
 start:
+	if s.Missings() == 0 {
+		return
+	}
 	if s.Debug {
 		logrus.Infof("#######  depth=%-2d iteration=%-3d changes=%-2d missings=%d kind=%s\n%s\n%s", depth, iteration, changes, s.Missings(), kind, s.String(), s.AvailablesString())
 		logrus.Infof(strings.Repeat("#", 42))
@@ -389,8 +392,10 @@ start:
 			goto start
 		}
 	}
+}
 
-	// Brute force
+func (s *Sudoku) ResolveRec(depth int) (*Sudoku, error) {
+	s.ResolveNonBrute(depth)
 	if s.Missings() == 0 {
 		return s, nil
 	}
