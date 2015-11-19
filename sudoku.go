@@ -403,5 +403,6 @@ func (s *Sudoku) Resolve() error {
 	if newSudoku != s {
 		newSudoku.Clone(s)
 	}
+
 	return nil
 }

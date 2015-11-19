@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/moul/sudoku"
@@ -32,26 +33,35 @@ func main() {
 	}
 	input = input[1 : len(input)-1]
 	sudokus := strings.Split(input, "+\n+")
+	results := make(map[int]*sudoku.Sudoku)
+	var wg sync.WaitGroup
+
 	for idx, sudokuStr := range sudokus {
 		sudo := sudoku.NewSudoku()
-		sudo.Debug = os.Getenv("DEBUG") == "1"
-		sudokuStr = fmt.Sprintf("+%s+", sudokuStr)
+		wg.Add(1)
+		results[idx] = &sudo
+		go func(sudo *sudoku.Sudoku, sudokuStr string) {
+			defer wg.Done()
+			sudo.Debug = os.Getenv("DEBUG") == "1"
+			sudokuStr = fmt.Sprintf("+%s+", sudokuStr)
 
-		if err := sudo.ParseString(sudokuStr); err != nil {
-			logrus.Fatalf("Failed to parse sudoku: %v", err)
-		}
+			if err := sudo.ParseString(sudokuStr); err != nil {
+				logrus.Fatalf("Failed to parse sudoku: %v", err)
+			}
 
-		if err := sudo.Resolve(); err != nil {
-			logrus.Fatalf("Failed to resolve sudoku: %v", err)
-		}
+			if err := sudo.Resolve(); err != nil {
+				logrus.Fatalf("Failed to resolve sudoku: %v", err)
+			}
+		}(&sudo, sudokuStr)
+	}
 
+	wg.Wait()
+
+	for idx := 0; idx < len(results); idx++ {
 		if idx > 0 {
 			fmt.Println("####################")
 		}
+		sudo := results[idx]
 		fmt.Println(sudo.String())
-
-		if sudo.Debug && sudo.Missings > 0 {
-			logrus.Warnf("Missings: %d\n%s", sudo.Missings, sudo.AvailablesString())
-		}
 	}
 }
