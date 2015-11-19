@@ -97,7 +97,7 @@ func NewSudokuWithSize(sqsize int) Sudoku {
 		BruteLimit: 2,
 
 		DoResolveNumbersThatAreOnlyInOnePosition:    true,
-		DoResolveNumbersThatCanOnlyBeInFewPositions: true,
+		DoResolveNumbersThatCanOnlyBeInFewPositions: false,
 		DoResolveOnlyOne:                            true,
 	}
 	sudoku.initFields()
