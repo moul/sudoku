@@ -23,6 +23,7 @@ type Sudoku struct {
 	Availables [][]Availables
 	Groups     Groups
 	BruteLimit int
+	Missings   int
 
 	DoResolveNumbersThatAreOnlyInOnePosition    bool
 	DoResolveNumbersThatCanOnlyBeInFewPositions bool
@@ -58,6 +59,7 @@ func (s *Sudoku) Clone(dest *Sudoku) {
 	dest.Size = s.Size
 	dest.SquareSize = s.SquareSize
 	dest.BruteLimit = s.BruteLimit
+	dest.Missings = s.Size * s.Size
 
 	dest.DoResolveNumbersThatAreOnlyInOnePosition = s.DoResolveNumbersThatAreOnlyInOnePosition
 	dest.DoResolveNumbersThatCanOnlyBeInFewPositions = s.DoResolveNumbersThatCanOnlyBeInFewPositions
@@ -95,6 +97,7 @@ func NewSudokuWithSize(sqsize int) Sudoku {
 		SquareSize: sqsize,
 		Size:       size,
 		BruteLimit: 2,
+		Missings:   size * size,
 
 		DoResolveNumbersThatAreOnlyInOnePosition:    true,
 		DoResolveNumbersThatCanOnlyBeInFewPositions: false,
@@ -213,6 +216,7 @@ func (g *Groups) MatchCoords(y, x int) []Group {
 func (s *Sudoku) SetNumber(y, x, number int) {
 	s.Grid[y][x] = number
 	s.Availables[y][x].SetNumber(number)
+	s.Missings--
 	for _, group := range s.Groups.MatchCoords(y, x) {
 		for _, pos := range group.Positions {
 			s.Availables[pos.Y][pos.X].RemoveNumber(number)
@@ -268,18 +272,6 @@ func (s *Sudoku) AvailablesString() string {
 	}
 	lines = append(lines, fmt.Sprintf("+%s+", strings.Repeat("-", s.Size*(s.Size+1)-1)))
 	return strings.Join(lines, "\n")
-}
-
-func (s *Sudoku) Missings() int {
-	missings := 0
-	for _, line := range s.Grid {
-		for _, col := range line {
-			if col == 0 {
-				missings++
-			}
-		}
-	}
-	return missings
 }
 
 func (s *Sudoku) ResolveOnlyOne() int {
@@ -363,11 +355,11 @@ func (s *Sudoku) ResolveNonBrute(depth int) {
 	kind := "start"
 
 start:
-	if s.Missings() == 0 {
+	if s.Missings == 0 {
 		return
 	}
 	if s.Debug {
-		logrus.Infof("#######  depth=%-2d iteration=%-3d changes=%-2d missings=%d kind=%s\n%s\n%s", depth, iteration, changes, s.Missings(), kind, s.String(), s.AvailablesString())
+		logrus.Infof("#######  depth=%-2d iteration=%-3d changes=%-2d missings=%d kind=%s\n%s\n%s", depth, iteration, changes, s.Missings, kind, s.String(), s.AvailablesString())
 		logrus.Infof(strings.Repeat("#", 42))
 	}
 	iteration++
@@ -396,7 +388,7 @@ start:
 
 func (s *Sudoku) ResolveRec(depth int) (*Sudoku, error) {
 	s.ResolveNonBrute(depth)
-	if s.Missings() == 0 {
+	if s.Missings == 0 {
 		return s, nil
 	}
 
@@ -414,7 +406,7 @@ func (s *Sudoku) ResolveRec(depth int) (*Sudoku, error) {
 				if err != nil {
 					continue
 				}
-				if newSudoku.Missings() == 0 {
+				if newSudoku.Missings == 0 {
 					return newSudoku, nil
 				}
 			}

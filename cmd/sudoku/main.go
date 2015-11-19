@@ -50,8 +50,8 @@ func main() {
 		}
 		fmt.Println(sudo.String())
 
-		if sudo.Debug && sudo.Missings() > 0 {
-			logrus.Warnf("Missings: %d\n%s", sudo.Missings(), sudo.AvailablesString())
+		if sudo.Debug && sudo.Missings > 0 {
+			logrus.Warnf("Missings: %d\n%s", sudo.Missings, sudo.AvailablesString())
 		}
 	}
 }
