@@ -398,10 +398,16 @@ func (s *Sudoku) ResolveRec(depth int) (*Sudoku, error) {
 
 	for y := 0; y < s.Size; y++ {
 		for x := 0; x < s.Size; x++ {
-			if s.Availables[y][x].Length > 0 {
+			if s.Availables[y][x].Length == 0 {
+				continue
+			}
+			for i := 0; i < s.Size; i++ {
+				if !s.Availables[y][x].Numbers[i] {
+					continue
+				}
 				clone := Sudoku{}
 				s.Clone(&clone)
-				clone.SetNumber(y, x, s.Availables[y][x].Availables()[0])
+				clone.SetNumber(y, x, i)
 				newSudoku, err := clone.ResolveRec(depth + 1)
 				if err != nil {
 					continue
