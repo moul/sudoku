@@ -294,15 +294,18 @@ func (s *Sudoku) ResolveNumbersThatAreOnlyInOnePosition() int {
 			count := 0
 			for _, pos := range group.Positions {
 				if s.Availables[pos.Y][pos.X].Numbers[number] {
-					count++
+					if count++; count > 1 {
+						break
+					}
 				}
 			}
-			if count == 1 {
-				for _, pos := range group.Positions {
-					if s.Availables[pos.Y][pos.X].Numbers[number] {
-						s.SetNumber(pos.Y, pos.X, number)
-						changes++
-					}
+			if count != 1 {
+				continue
+			}
+			for _, pos := range group.Positions {
+				if s.Availables[pos.Y][pos.X].Numbers[number] {
+					s.SetNumber(pos.Y, pos.X, number)
+					changes++
 				}
 			}
 		}
