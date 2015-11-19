@@ -25,9 +25,8 @@ type Sudoku struct {
 	BruteLimit int
 	Missings   int
 
-	DoResolveNumbersThatAreOnlyInOnePosition    bool
-	DoResolveNumbersThatCanOnlyBeInFewPositions bool
-	DoResolveOnlyOne                            bool
+	DoResolveNumbersThatAreOnlyInOnePosition bool
+	DoResolveOnlyOne                         bool
 }
 
 type GroupType int
@@ -62,7 +61,6 @@ func (s *Sudoku) Clone(dest *Sudoku) {
 	dest.Missings = s.Size * s.Size
 
 	dest.DoResolveNumbersThatAreOnlyInOnePosition = s.DoResolveNumbersThatAreOnlyInOnePosition
-	dest.DoResolveNumbersThatCanOnlyBeInFewPositions = s.DoResolveNumbersThatCanOnlyBeInFewPositions
 	dest.DoResolveOnlyOne = s.DoResolveOnlyOne
 
 	dest.initFields()
@@ -99,9 +97,8 @@ func NewSudokuWithSize(sqsize int) Sudoku {
 		BruteLimit: 2,
 		Missings:   size * size,
 
-		DoResolveNumbersThatAreOnlyInOnePosition:    true,
-		DoResolveNumbersThatCanOnlyBeInFewPositions: false,
-		DoResolveOnlyOne:                            true,
+		DoResolveNumbersThatAreOnlyInOnePosition: true,
+		DoResolveOnlyOne:                         true,
 	}
 	sudoku.initFields()
 	sudoku.initGroups()
@@ -290,42 +287,6 @@ func (s *Sudoku) ResolveOnlyOne() int {
 	return changed
 }
 
-func (s *Sudoku) RemoveNumbersThatCanOnlyBeInFewPositions() int {
-	changes := 0
-	for _, group := range s.Groups.AllGroups() {
-		for idxA, posA := range group.Positions {
-			identicalSlots := 0
-			availableA := s.Availables[posA.Y][posA.X]
-			for idxB, posB := range group.Positions {
-				if idxA == idxB {
-					continue
-				}
-				availableB := s.Availables[posB.Y][posB.X]
-				if availableA.String() == availableB.String() {
-					identicalSlots++
-				}
-			}
-			if identicalSlots != availableA.Length-1 {
-				continue
-			}
-			for idxB, posB := range group.Positions {
-				if idxA == idxB {
-					continue
-				}
-				availableB := s.Availables[posB.Y][posB.X]
-				if availableA.String() != availableB.String() {
-					for _, number := range availableA.Availables() {
-						if s.Availables[posB.Y][posB.X].RemoveNumber(number) {
-							changes++
-						}
-					}
-				}
-			}
-		}
-	}
-	return changes
-}
-
 func (s *Sudoku) ResolveNumbersThatAreOnlyInOnePosition() int {
 	changes := 0
 	for _, group := range s.Groups.AllGroups() {
@@ -374,13 +335,6 @@ start:
 	if s.DoResolveNumbersThatAreOnlyInOnePosition {
 		kind = "resolve-numbers-that-are-only-in-one-position"
 		if changes = s.ResolveNumbersThatAreOnlyInOnePosition(); changes > 0 {
-			goto start
-		}
-	}
-
-	if s.DoResolveNumbersThatCanOnlyBeInFewPositions && depth == 0 {
-		kind = "resolve-numbers-that-can-only-be-in-few-positions"
-		if changes = s.RemoveNumbersThatCanOnlyBeInFewPositions(); changes > 0 {
 			goto start
 		}
 	}
