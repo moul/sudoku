@@ -71,6 +71,71 @@ func ExampleSudoku_Resolve_4x4() {
 	// +-------------------------------+
 }
 
+func ExampleSudoku_Resolve_5x5() {
+	sudoku := NewSudokuWithSize(5)
+	sudoku.BruteLimit = 0
+	sudoku.ParseString(`
++-------------------------------------------------+
+|L U A     I   V     Y P   C   H N E F   T     G X|
+|      W       Y T   R   Q N K     D X   O   C    |
+|        D X       A       M       W   V       B U|
+|E K N H     C P S   L T     U J     B Q   A F D  |
+|T   X S P   U   N O H G D   J   L   C     I   W V|
+|A Y       J           U   V X D   L     B W N Q O|
+|  F   L     P   A   B       M U E     S     V    |
+|D   J   W   O S C U   L         T     I G     M  |
+|    B I M W L   V H S Q N   O         G   T R   K|
+|  T   Q H   N G         E I           B   X S U  |
+|R     V   O X K     I     A L   Q B         M T  |
+|  M D J   L             H   B     A O E R S     C|
+|    O         C H   U       P   V M         Y    |
+|K     T L M W B     N   S             U   H O I  |
+|  H C         I E   D O     F     K G N   V     L|
+|  C M A   K           S R         I D   Y E   V  |
+|Q   U F   V         W   L O G A S   M J D K I    |
+|  V     I S     Q         D   C O H N   F   T   P|
+|    P     N     W T M       A   K   E     O   L  |
+|G O K X B     J   R F I   P           Y       N H|
+|M P   B     K   X   G   A S V E J   T   I C L   Q|
+|  G S O   C H     I P     K Q   F V R     J D X T|
+|F Q       D   A       R       M       X E        |
+|    W   X   V L     J B F   T   H C       U      |
+|J L     C   Q N O M   D   H Y     G   W     B S R|
++-------------------------------------------------|
+
+`)
+	sudoku.Resolve()
+	fmt.Println(sudoku.String())
+	// Output:
+	// +-------------------------------------------------+
+	// |L U A M Q I D V K B Y P W C S H N E F O T R J G X|
+	// |V B I W F H E Y T J R A Q N K G U D X M O L C P S|
+	// |C J Y G D X R Q L A E F O M I T P W S V K N H B U|
+	// |E K N H O G C P S W L T V X U J I R B Q M A F D Y|
+	// |T R X S P F U M N O H G D B J K L Y C A Q I E W V|
+	// |A Y G C S J F R I E T U P V X D M L K H B W N Q O|
+	// |O F R L K Q P T A X B Y G W M U E N J S H D V C I|
+	// |D E J N W B O S C U A L K R H V T X Q I G Y P M F|
+	// |U X B I M W L D V H S Q N F O Y C P A G J T R E K|
+	// |P T V Q H Y N G M K C J E I D O R F W B L X S U A|
+	// |R S F V U O X K Y N I E J A L W Q B H C P G M T D|
+	// |X M D J N L T F U P V W H G B I Y A O E R S Q K C|
+	// |I W O E G A S C H D U K X Q P R V M L T N B Y F J|
+	// |K A Q T L M W B G V N C S Y R F D J P U X H O I E|
+	// |B H C P Y R J I E Q D O M T F S X K G N U V W A L|
+	// |H C M A T K B O F L Q S R J N X G I D P Y E U V W|
+	// |Q N U F E V Y X P C W H L O G A S T M J D K I R B|
+	// |W V L Y I S A U Q G K X B D E C O H N R F M T J P|
+	// |S D P R J N I H W T M V Y U A B K Q E F C O X L G|
+	// |G O K X B E M J D R F I T P C L W U V Y S Q A N H|
+	// |M P H B R U K W X F G N A S V E J O T D I C L Y Q|
+	// |Y G S O A C H E B I P M U K Q N F V R L W J D X T|
+	// |F Q T U V D G A J Y O R C L W M B S I X E P K H N|
+	// |N I W D X P V L R S J B F E T Q H C Y K A U G O M|
+	// |J L E K C T Q N O M X D I H Y P A G U W V F B S R|
+	// +-------------------------------------------------+
+}
+
 func ExampleSudoku_Resolve() {
 	sudoku := NewSudoku()
 	sudoku.BruteLimit = 0

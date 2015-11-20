@@ -9,9 +9,6 @@ import (
 	"github.com/Sirupsen/logrus"
 )
 
-var CharsSlice = []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "G"}
-var Chars = strings.Join(CharsSlice, "")
-
 type Availables struct {
 	Size    int
 	Numbers map[int]bool
@@ -27,6 +24,8 @@ type Sudoku struct {
 	Groups     Groups
 	BruteLimit int
 	Missings   int
+	Chars      string
+	CharsSlice []string
 
 	DoResolveNumbersThatAreOnlyInOnePosition bool
 	DoResolveOnlyOne                         bool
@@ -103,6 +102,13 @@ func NewSudokuWithSize(sqsize int) Sudoku {
 		DoResolveNumbersThatAreOnlyInOnePosition: true,
 		DoResolveOnlyOne:                         true,
 	}
+	if sqsize == 5 {
+		sudoku.CharsSlice = []string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y"}
+	} else {
+		sudoku.CharsSlice = []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "G"}
+	}
+	sudoku.Chars = strings.Join(sudoku.CharsSlice, "")
+
 	sudoku.initFields()
 	sudoku.initGroups()
 	return sudoku
@@ -233,7 +239,7 @@ func (s *Sudoku) ParseString(input string) error {
 			if col == " " {
 				continue
 			}
-			idx := strings.Index(Chars, col)
+			idx := strings.Index(s.Chars, col)
 			if idx == -1 {
 				return fmt.Errorf("Invalid character: %q", col)
 			}
@@ -250,7 +256,7 @@ func (s *Sudoku) String() string {
 	for _, gridLine := range s.Grid {
 		line := []string{}
 		for _, col := range gridLine {
-			line = append(line, CharsSlice[col-1])
+			line = append(line, s.CharsSlice[col-1])
 		}
 		lineStr := fmt.Sprintf("|%s|", strings.Join(line, " "))
 		lineStr = strings.Replace(lineStr, "0", " ", -1)
