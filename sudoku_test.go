@@ -2,6 +2,28 @@ package sudoku
 
 import "fmt"
 
+func ExampleSudoku_Resolve_2x2() {
+	sudoku := NewSudokuWithSize(2)
+	sudoku.BruteLimit = 4
+	sudoku.ParseString(`
++-------+
+|3      |
+|       |
+|    1  |
+|4   3  |
++-------+
+`)
+	sudoku.Resolve()
+	fmt.Println(sudoku.String())
+	// Output:
+	// +-------+
+	// |3 2 4 1|
+	// |1 4 2 3|
+	// |2 3 1 4|
+	// |4 1 3 2|
+	// +-------+
+}
+
 func ExampleSudoku_Resolve() {
 	sudoku := NewSudoku()
 	sudoku.BruteLimit = 0
