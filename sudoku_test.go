@@ -24,6 +24,53 @@ func ExampleSudoku_Resolve_2x2() {
 	// +-------+
 }
 
+func ExampleSudoku_Resolve_4x4() {
+	sudoku := NewSudokuWithSize(4)
+	sudoku.BruteLimit = 0
+	sudoku.ParseString(`
++-------------------------------+
+|5 9   2       F 3   4 7     G E|
+|      4 E   2 3 B   8   D 9 F  |
+|D B   E 7     G       9   A 3 5|
+|          D 9   F A   1   4    |
+|4   5     8 F   6   1 A 3     G|
+|    A   B E   5     D 3 1   6  |
+|  2 7 8             G   B   9  |
+|  6 E B 9 G C 1 5   2   A      |
+|  8 9 F C 5 3 4 7   A   2      |
+|  3 D 7             6   9   5  |
+|    4   D A   9     F B G   7  |
+|B   2     1 7   E   9 5 F     4|
+|          9 G   A 8   6   F    |
+|8 E   5 4     D       2   B A 9|
+|      G A   B E 4   7   5 8 D  |
+|9 A   6       2 D   B F     C 1|
++-------------------------------|
+
+`)
+	sudoku.Resolve()
+	fmt.Println(sudoku.String())
+	// Output:
+	// +-------------------------------+
+	// |5 9 8 2 6 B A F 3 D 4 7 C 1 G E|
+	// |A 1 6 4 E C 2 3 B 5 8 G D 9 F 7|
+	// |D B F E 7 4 1 G 2 6 C 9 8 A 3 5|
+	// |C 7 G 3 5 D 9 8 F A E 1 6 4 B 2|
+	// |4 D 5 9 2 8 F 7 6 B 1 A 3 C E G|
+	// |F G A C B E 4 5 9 7 D 3 1 2 6 8|
+	// |1 2 7 8 3 6 D A C 4 G E B 5 9 F|
+	// |3 6 E B 9 G C 1 5 F 2 8 A 7 4 D|
+	// |E 8 9 F C 5 3 4 7 G A D 2 6 1 B|
+	// |G 3 D 7 F 2 8 B 1 C 6 4 9 E 5 A|
+	// |6 5 4 1 D A E 9 8 2 F B G 3 7 C|
+	// |B C 2 A G 1 7 6 E 3 9 5 F D 8 4|
+	// |7 4 B D 1 9 G C A 8 5 6 E F 2 3|
+	// |8 E C 5 4 F 6 D G 1 3 2 7 B A 9|
+	// |2 F 1 G A 3 B E 4 9 7 C 5 8 D 6|
+	// |9 A 3 6 8 7 5 2 D E B F 4 G C 1|
+	// +-------------------------------+
+}
+
 func ExampleSudoku_Resolve() {
 	sudoku := NewSudoku()
 	sudoku.BruteLimit = 0

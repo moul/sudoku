@@ -9,6 +9,9 @@ import (
 	"github.com/Sirupsen/logrus"
 )
 
+var CharsSlice = []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "G"}
+var Chars = strings.Join(CharsSlice, "")
+
 type Availables struct {
 	Size    int
 	Numbers map[int]bool
@@ -227,13 +230,14 @@ func (s *Sudoku) ParseString(input string) error {
 	for y, line := range lines[1 : s.Size+1] {
 		for x := 0; x < s.Size; x++ {
 			col := line[1+x*2 : 1+x*2+1]
-			if col != " " {
-				colNb, err := strconv.Atoi(col)
-				if err != nil {
-					return err
-				}
-				s.SetNumber(y, x, colNb)
+			if col == " " {
+				continue
 			}
+			idx := strings.Index(Chars, col)
+			if idx == -1 {
+				return fmt.Errorf("Invalid character: %q", col)
+			}
+			s.SetNumber(y, x, idx+1)
 		}
 	}
 	return nil
@@ -246,7 +250,7 @@ func (s *Sudoku) String() string {
 	for _, gridLine := range s.Grid {
 		line := []string{}
 		for _, col := range gridLine {
-			line = append(line, strconv.Itoa(col))
+			line = append(line, CharsSlice[col-1])
 		}
 		lineStr := fmt.Sprintf("|%s|", strings.Join(line, " "))
 		lineStr = strings.Replace(lineStr, "0", " ", -1)
