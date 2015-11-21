@@ -60,20 +60,34 @@ func (s *Sudoku) Clone(dest *Sudoku) {
 	dest.Size = s.Size
 	dest.SquareSize = s.SquareSize
 	dest.BruteLimit = s.BruteLimit
-	dest.Missings = s.Size * s.Size
+	dest.Missings = s.Missings
+	dest.Chars = s.Chars
+	dest.CharsSlice = s.CharsSlice
+	dest.Groups = s.Groups
 
 	dest.DoResolveNumbersThatAreOnlyInOnePosition = s.DoResolveNumbersThatAreOnlyInOnePosition
 	dest.DoResolveOnlyOne = s.DoResolveOnlyOne
 
-	dest.initFields()
-	dest.Groups = s.Groups
+	dest.Grid = make([][]int, s.Size)
+	dest.Availables = make([][]Availables, s.Size)
 
-	for y := 0; y < s.Size; y++ {
-		for x := 0; x < s.Size; x++ {
-			if s.Grid[y][x] > 0 {
-				dest.SetNumber(y, x, s.Grid[y][x])
-			}
+	for i := 0; i < s.Size; i++ {
+		//dest.Grid[i] = append([]int{}, s.Grid[i]...)
+		dest.Grid[i] = make([]int, s.Size)
+		copy(dest.Grid[i], s.Grid[i])
+		dest.Availables[i] = make([]Availables, s.Size)
+		for j := 0; j < s.Size; j++ {
+			s.Availables[i][j].Clone(&(dest.Availables[i][j]))
 		}
+	}
+}
+
+func (a *Availables) Clone(dest *Availables) {
+	dest.Size = a.Size
+	dest.Length = a.Length
+	dest.Numbers = make(map[int]bool, a.Size)
+	for k, v := range a.Numbers {
+		dest.Numbers[k] = v
 	}
 }
 
