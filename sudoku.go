@@ -256,7 +256,11 @@ func (s *Sudoku) String() string {
 	for _, gridLine := range s.Grid {
 		line := []string{}
 		for _, col := range gridLine {
-			line = append(line, s.CharsSlice[col-1])
+			if col == 0 {
+				line = append(line, " ")
+			} else {
+				line = append(line, s.CharsSlice[col-1])
+			}
 		}
 		lineStr := fmt.Sprintf("|%s|", strings.Join(line, " "))
 		lineStr = strings.Replace(lineStr, "0", " ", -1)
