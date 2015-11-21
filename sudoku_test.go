@@ -1,6 +1,46 @@
 package sudoku
 
-import "fmt"
+import (
+	"fmt"
+	"testing"
+
+	. "github.com/smartystreets/goconvey/convey"
+)
+
+func TestSudoku_Resolve(t *testing.T) {
+	Convey("Testing Sudoku.Resolve", t, FailureContinues, func() {
+		sudoku := NewSudokuWithSize(2)
+		So(sudoku, ShouldNotBeNil)
+		sudoku.BruteLimit = 5
+		sudoku.ParseString(`
++-------+
+|3      |
+|       |
+|    1  |
+|4   3  |
++-------+
+`)
+		// So(sudoku...
+		err := sudoku.Resolve()
+		So(err, ShouldBeNil)
+		expected := `
++-------------------+
+|.... .... .... ....|
+|.... .... .... ....|
+|.... .... .... ....|
+|.... .... .... ....|
++-------------------+`[1:]
+		So(sudoku.AvailablesString(), ShouldEqual, expected)
+		expected = `
++-------+
+|3 2 4 1|
+|1 4 2 3|
+|2 3 1 4|
+|4 1 3 2|
++-------+`[1:]
+		So(sudoku.String(), ShouldEqual, expected)
+	})
+}
 
 func ExampleSudoku_Resolve_2x2() {
 	sudoku := NewSudokuWithSize(2)
