@@ -7,5 +7,7 @@
 
 ![Logo](https://raw.githubusercontent.com/moul/sudoku/master/assets/sudoku.png)
 
+Answer to [sudoku challenge](https://github.com/jeannedhack/programmingChallenges/tree/master/sudoku)
+
 ## License
 MIT
